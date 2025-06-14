@@ -1,0 +1,8 @@
+%%%%    (maintain 5 header lines)
+Here there be parameters associated with 
+BAS processing (use= 1 or 0). Seems better to include in a separate parameter file from
+Preprocessing; Offset 0 = none, 1 = mean , 2 = median, 3 = rms
+%%%%
+
+useA useB useC OffsetA  OffsetB OffsetC smooth showfig
+1 1 1 0 0 0 1 1

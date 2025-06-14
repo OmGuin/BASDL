@@ -1,0 +1,15 @@
+%%%% (maintain 5 header lines) 
+These data represent simulated data with 3 independent populations 
+These header lines can be used to explain the point of the data collection 
+and point to other informative files with additional information. 
+%%%% 
+
+10Jun25-105145-1-1.txt
+10Jun25-105145-1-2.txt
+10Jun25-105145-1-3.txt
+10Jun25-105145-2-1.txt
+10Jun25-105145-2-2.txt
+10Jun25-105145-2-3.txt
+
+headlines colA colB sampletime driftwinA driftwinB basethreshA basethreshB corrt dofit 
+14 1 2 5.00e-04 0 0 1 1 0.0030 0 
