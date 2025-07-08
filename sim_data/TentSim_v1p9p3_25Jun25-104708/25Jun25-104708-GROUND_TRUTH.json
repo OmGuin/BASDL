@@ -1,0 +1,23 @@
+{
+    "Amplitudes": {
+        "AmpS1ChA": 1300,
+        "AmpS1ChB": 1300,
+        "AmpS2ChA": 1300,
+        "AmpS2ChB": 1300,
+        "AmpS3ChA": 1300,
+        "AmpS3ChB": 1300
+    },
+    "SpeciesFractions": {
+        "Frac1": 1,
+        "Frac2": 1,
+        "Frac3": 1
+    },
+    "LabelNumbers": {
+        "LabelNumS1ChA": 1,
+        "LabelNumS1ChB": 1,
+        "LabelNumS2ChA": 4,
+        "LabelNumS2ChB": 4,
+        "LabelNumS3ChA": 7,
+        "LabelNumS3ChB": 7
+    }
+}
