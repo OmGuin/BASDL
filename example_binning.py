@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-filename = r'C:\Users\omgui\Desktop\BASUS\real_data\100nm_Tetraspecs\100nm_TetraSpec_FS_1.txt' 
+filename = r'C:\Users\omgui\Desktop\BASDL\real_data\100nm_Tetraspecs\100nm_TetraSpec_FS_1.txt' 
 
 
 with open(filename) as f:

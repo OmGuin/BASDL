@@ -1,0 +1,20 @@
+{
+    "Amplitudes": {
+        "AmpS1": 2057,
+        "AmpS2": 4430,
+        "AmpS3": 7929
+    },
+    "ActualFractions": {
+        "Frac1": 0.34882254734874607,
+        "Frac2": 0.30821304732004573,
+        "Frac3": 0.34296440533120837
+    },
+    "ActualConcentrations": {
+        "Species1": 1.9046328956687975e-09,
+        "Species2": 1.6828978323272744e-09,
+        "Species3": 1.8726464025968726e-09
+    },
+    "Extra": {
+        "Concentration": 5.460177130592943e-09
+    }
+}

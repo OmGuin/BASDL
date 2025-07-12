@@ -1,0 +1,10 @@
+%%%% (maintain 5 header lines) 
+These data represent simulated data with up to 3 independent populations 
+This is 'high concentration' data -- data at a concentration where diffusion is significant 
+. 
+%%%% 
+
+10Jul25-225651-1
+
+datatype TotTime MTclock bintime driftwinA driftwinB driftwinC threshA threshB threshC corrt dofit colA colB colC
+1 0.1 1.00e+00 0.000500 0 0 0 1 1 1 0.003 1 1 0 0
