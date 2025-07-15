@@ -19,7 +19,7 @@ D=4.2e-10;   % m^2/s  Casalini et al. diffusion of fluorescein sodium salt
 % D=6e-11;   % m^2/s   66kDa ~3.5nm BSA
 % D=5e-12;   % m^2/s  ~100nm nanosphere
 
-tau_d = w0^2/(24*D); %diffusion time through beam
+tau_d = 0.001; %diffusion time through beam
 binDt = tau_d/1000; %fine bin size in seconds for creating fcs curves
 
 

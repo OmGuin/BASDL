@@ -1,0 +1,1 @@
+{"Amplitudes": {"AmpS1": 1000, "AmpS2": 6500, "AmpS3": 10500}, "ActualFractions": {"Frac1": 1.0, "Frac2": 0.0, "Frac3": 0.0}, "ActualConcentrations": {"Species1": 3e-11, "Species2": 0.0, "Species3": 0.0, "Total": 3e-11}, "SimulationInputs": {"D": 1e-11, "totaltime": 0.1, "binDt": 1e-06, "w0": 3e-07, "axialFactor": 3, "vFlow": 0.0005}}
