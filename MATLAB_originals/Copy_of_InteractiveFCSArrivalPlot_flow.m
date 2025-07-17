@@ -1,10 +1,10 @@
-function InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
+function Copy_of_InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed, axOut, conc, amp)
 % InteractiveFCSArrivalPlot_flow  GUI to run FCS with flow model on photon arrivals
 %   InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
 %     arrivalTimes – sorted photon arrival timestamps [s]
 %     w0           – lateral beam waist radius [m]
 %     S_fixed      – (optional) structure parameter S to hold fixed in the fit
-    
+
     arrivalTimes = arrivalTimes(:);
     if nargin < 3
         S_fixed = [];
@@ -52,11 +52,32 @@ function InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
 
     hRun = uicontrol('Style','pushbutton','Parent',hFig,'Units','normalized', ...
         'Position',[0.5 y0-0.1 0.1 0.07],'String','Run FCS','FontSize',10,'Callback',@runFCS);
-    %uicontrol('Style','pushbutton','Parent',hFig,'Units','normalized', ...
-    %    'Position',[0.85 y0-0.1 0.1 0.07],'String','Exit','FontSize',10,'Callback',@(~,~) close(hFig));
     uicontrol('Style','pushbutton','Parent',hFig,'Units','normalized', ...
-    'Position',[0.85 y0-0.1 0.1 0.07],'String','Exit','FontSize',10,'Callback',@saveAndClose);
+        'Position',[0.85 y0-0.1 0.1 0.07],'String','Exit','FontSize',10,'Callback',@(~,~) close(hFig));
+    hAddToGrid = uicontrol('Style','pushbutton','Parent',hFig,'Units','normalized', ...
+        'Position',[0.65 y0-0.1 0.15 0.07],'String','Add to Grid','FontSize',10, ...
+        'Callback',@addToGrid);
 
+    function addToGrid(~,~)
+        % Copy correlation plot into global grid axes
+        global FCS_subplot_axes;
+        if isempty(lastTau) || isempty(lastG2)
+            errordlg('Run FCS before adding to grid.');
+            return;
+        end
+
+        % Clear target axes
+        cla(axOut);
+        semilogx(axOut, lastTau, lastG2, '.-','MarkerSize',8);
+        xlabel(axOut,'\tau (s)');
+        ylabel(axOut,'g^{(2)}(\tau)');
+        title(axOut, sprintf('Concentration (M): %s\nBrightness (counts): %s', conc, amp), 'FontSize',10);
+        grid(axOut,'on');
+
+        % Return control to wrapper
+        uiresume;
+        close(hFig);
+    end
 
     % Cache for correlation
     persistent lastBinDt lastM lastP lastBgRate lastTau lastG2;
@@ -172,31 +193,4 @@ function InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
         end
         set(hRun,'Enable','on');
     end
-    function saveAndClose(~,~)
-        % Generate timestamped filename
-        timestamp = datestr(now, 'yyyymmdd_HHMMSS');
-        folderPath = fullfile(pwd, 'dataset_testing');
-        if ~exist(folderPath, 'dir')
-            mkdir(folderPath);
-        end
-        filenamePNG = fullfile(folderPath, ['FCS_Curve_' timestamp '.png']);
-        filenameFIG = fullfile(folderPath, ['FCS_Curve_' timestamp '.fig']);
-    
-        % Create a temporary figure and copy the axes content
-        hExportFig = figure('Visible','off');  % Hide new figure
-        hNewAx = copyobj(hAx, hExportFig);     % Copy only the axes
-        set(hNewAx, 'Units', 'normalized', 'Position', [0.13 0.11 0.775 0.815]); % Fill figure nicely
-    
-        % Save to PNG and .fig
-        saveas(hExportFig, filenamePNG);
-        savefig(hExportFig, filenameFIG);
-    
-        % Close the export figure
-        close(hExportFig);
-    
-        % Close the original GUI
-        close(hFig);
-    end
 end
-
-    

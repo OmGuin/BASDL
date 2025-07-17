@@ -1,0 +1,9 @@
+numpy
+matplotlib
+scipy
+pandas
+ipyfilechooser
+scikit-learn
+plotly
+numba
+notebook

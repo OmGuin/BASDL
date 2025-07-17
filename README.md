@@ -53,26 +53,55 @@ First hands-on experience with BAS data. :)
 
 
 ## Data Generation Setup (`data_gen_pch.ipynb`)
-A virtual machine with multiple cores is **highly** recommended. [Paperspace](paperspace.com) is a great service, requiring only a couple cents per hour for high-end VMs. Make an account and get an instance with at least 15 GB of RAM to be safe. You will also need an SSH key to use paperspace. [PuTTY](https://www.putty.org/) is a simple way to generate one.
+A virtual machine with multiple cores is **highly** recommended. [Paperspace](paperspace.com) is a great service, requiring only a couple cents per hour for high-end VMs. Make an account and get an instance with at least 15 GB of RAM to be safe. You will also need an SSH key to use paperspace. [PuTTY](https://www.putty.org/) is a great way to generate one.
 
 After setting up an account and virtual machine, follow these instructions to generate data with a paperspace virtual machine (windows).
 
 1. Open powershell and SSH into the VM with `ssh paperspace@<public_ip>`
 2. Clone repo with `git clone https://github.com/OmGuin/BASDL.git` and cd into the repo with `cd BASDL`
 3. Use the following commands to ensure packages and setup is smooth:
-- `sudo apt update`
-- `sudo apt install python3-venv`
-- `sudo apt install jupyter-core`
-- `sudo apt install htop` (if you want to monitor CPU & memory usage)
+- `sudo apt update && sudo apt install -y python3-pip`
+- `sudo apt install python3-venv jupyter-core htop`
 4. Then, use a virtual environment to install packages cleanly: `python3 -m venv venv` and `source venv/bin/activate`
 5. Install packages with `pip install -r requirements.txt`
 6. Run `jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser`
-7. You will now need to generate an SSH key. Download [PuTTY](https://www.putty.org/) and open PuTTYgen. Click "Generate" and save the private key as a `.ppk` file. Then, click load and select that `.ppk` file. Then, click "Conversions" at the top and Export OpenSSH key. Save as `.pem`. Remember the path to this file.
+7. You will now need to generate an SSH key. Download [PuTTY](https://www.putty.org/) and open PuTTYgen. Click "Generate" and save the private key as a `.ppk` file. Then, click load and select that `.ppk` file. Then, click "Conversions" at the top and Export OpenSSH key. Save as `.pem`. Remember the path to this file. This is a one-time step. For future uses, you can reuse this `.pem` file; just remember the path.
 8. Then, open another powershell on your own PC and run `ssh -i <path/to/.pem> -L 8888:localhost:8888 paperspace@<public_ip>`
 9. Then, go to `http://127.0.0.1:8888/tree?token=<token>` to access your notebook (The link to go to will show in the terminal). 
 
 You can now run any of the jupyter notebooks (`.ipynb`) in the virtual machine. Run `htop` in the terminal if you want to monitor CPU & RAM usage in real-time.
 
+Della Instructions
+
+1. Open Ubuntu terminal
+2. Run `ssh go9487@della.princeton.edu`
+3. Login
+4. `module load anaconda3/2024.10`
+5. `conda create -n <name> -y`
+6. `conda activate <name>`
+7. `conda install jupyter`
+8. `pip install -r requirements.txt`
+
+These steps are only necessary the first time you need to set up della. For future uses, replace steps 5-8 with `conda activate <name>`.
+
+9. Go to mydella.princeton.edu
+10. Interactive apps --> Jupyter on Della Vis Nodes --> Launch --> Connect to Jupyter
+11. Open jupyter notebook --> Select kernel in top right --> Select anaconda environment kernel
+
+If you run your code now, it will be running on the head node, so it might be slow (for very intensive tasks). To get your personal machine, create a run.sh file on your computer and type this in:
+```
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=96
+#SBATCH --cpus-per-task=1
+#SBATCH --account=puchalla
+#SBATCH --time=3000:00
+#SBATCH --mail-type=end
+#SBATCH --mail-user=go9487@princeton.edu
+
+#put your linux commands and stuff (i.e. cd into repo, python run_script.py, whatever you need; don't clone repo because the new machine will already have files from head)
+```
 
 
 
