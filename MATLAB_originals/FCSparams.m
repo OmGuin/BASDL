@@ -1,7 +1,7 @@
 %Parameter for fcs simulation
 C_molar=1e-10;  %Mol/L
 Rp=1e7;   %max cnts per sec per particle at beam center (system responsivity)
-totalTime = 0.1;  %time of data collection
+totalTime = 10;  %time of data collection
 w0 = 3e-7;  %lateral beam waste in meters
 axialFactor = 3;  %Factor axial beam dimension differs from lateral
 includeBg = 'false'; % choose to include a Poisson background intensity
@@ -15,12 +15,12 @@ M=8; %Multi-tau parameter (# channels per cascade)
 P=2; % Multi-tau parameter (# cascade levels)
 % is usually 2 (doubling the bin width each level)
 
-D=4.2e-10;   % m^2/s  Casalini et al. diffusion of fluorescein sodium salt
+D=1e-11;   % m^2/s  Casalini et al. diffusion of fluorescein sodium salt
 % D=6e-11;   % m^2/s   66kDa ~3.5nm BSA
 % D=5e-12;   % m^2/s  ~100nm nanosphere
 
-tau_d = w0^2/(24*D); %diffusion time through beam
-binDt = tau_d/1000; %fine bin size in seconds for creating fcs curves
+%tau_d = w0^2/(24*D); %diffusion time through beam
+binDt = 1e-6; %fine bin size in seconds for creating fcs curves
 
 
 

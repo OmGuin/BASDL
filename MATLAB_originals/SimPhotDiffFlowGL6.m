@@ -69,7 +69,7 @@ tic
 
     % 4.5) Other noise effects in emission (particle brightness variation)
     % std of brightness fluctuations (e.g. 0.2 for ±20% jitter)
-    sigma_b = 0.2;
+    sigma_b = 0;
     % per-molecule brightness factors, mean = 1
     b = exp(sigma_b * randn(Nres,1) - 0.5*sigma_b^2);
 

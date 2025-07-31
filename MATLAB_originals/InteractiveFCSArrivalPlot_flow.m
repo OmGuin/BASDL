@@ -1,4 +1,4 @@
-function InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
+function InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed, conc, amp)
 % InteractiveFCSArrivalPlot_flow  GUI to run FCS with flow model on photon arrivals
 %   InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
 %     arrivalTimes – sorted photon arrival timestamps [s]
@@ -173,30 +173,55 @@ function InteractiveFCSArrivalPlot_flow(arrivalTimes, w0, S_fixed)
         set(hRun,'Enable','on');
     end
     function saveAndClose(~,~)
-        % Generate timestamped filename
-        timestamp = datestr(now, 'yyyymmdd_HHMMSS');
+        % Create output folder if it doesn't exist
         folderPath = fullfile(pwd, 'dataset_testing');
         if ~exist(folderPath, 'dir')
             mkdir(folderPath);
         end
-        filenamePNG = fullfile(folderPath, ['FCS_Curve_' timestamp '.png']);
-        filenameFIG = fullfile(folderPath, ['FCS_Curve_' timestamp '.fig']);
-    
-        % Create a temporary figure and copy the axes content
-        hExportFig = figure('Visible','off');  % Hide new figure
-        hNewAx = copyobj(hAx, hExportFig);     % Copy only the axes
-        set(hNewAx, 'Units', 'normalized', 'Position', [0.13 0.11 0.775 0.815]); % Fill figure nicely
-    
+
+        % Format filename using conc and amp
+        concStr = strrep(num2str(conc, '%.1e'), '-', 'm');  % '7e-11' → '7m11'
+        ampStr = num2str(amp);
+        filenameBase = sprintf('FCS_Curve_%s_%s', concStr, ampStr);
+        filenamePNG = fullfile(folderPath, [filenameBase '.png']);
+        filenameFIG = fullfile(folderPath, [filenameBase '.fig']);
+
+        % Get parameter values from GUI
+        binDt  = str2double(get(hBin, 'String'));
+        M      = round(str2double(get(hM, 'String')));
+        P      = round(str2double(get(hP, 'String')));
+        bgRate = str2double(get(hBg, 'String'));
+
+        % Create export figure and copy axes
+        hExportFig = figure('Visible', 'off');
+        hExportAx = copyobj(hAx, hExportFig);
+        set(hExportAx, 'Units', 'normalized', 'Position', [0.13 0.35 0.775 0.6]);
+
+        % Build horizontal parameter string
+        paramText = sprintf('BinDt = %.3g s   |   M = %d   |   P = %d   |   bgRate = %.1f Hz', ...
+                            binDt, M, P, bgRate);
+
+        % Add annotation below the plot (no border)
+        annotation(hExportFig, 'textbox', [0.1, 0.15, 0.8, 0.05], ...
+            'String', paramText, ...
+            'FontSize', 12, ...
+            'FontWeight', 'bold', ...
+            'EdgeColor', 'none', ...
+            'HorizontalAlignment', 'center', ...
+            'VerticalAlignment', 'middle', ...
+            'Interpreter', 'tex');
+
         % Save to PNG and .fig
         saveas(hExportFig, filenamePNG);
         savefig(hExportFig, filenameFIG);
-    
-        % Close the export figure
+
+        % Close both figures
         close(hExportFig);
-    
-        % Close the original GUI
         close(hFig);
     end
+
+
+
 end
 
     
