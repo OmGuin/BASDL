@@ -39,17 +39,14 @@ def SimPhotDiffFlowGL6(C_molar, Rp, D, totalTime, binDt, w0, axialFactor, includ
     else:
         stepsPerSweep = int(1e9)
     alpha = None
-    # 4) Preallocate photon times
-    Veff = np.pi ** (3/2) * w0**2 * w_z
-    Navg = C_m3 * NA * Veff
-    expCount = int(np.ceil((Navg*Rp + bgRate) * totalTime * 1.2))
+    
     sigma_b = None
     dist_type = 1
     if num_species == 1:
         dist_type = np.random.randint(0, 2)
         if dist_type == 0: # power_law
             alpha = rng.uniform(1.0, 2.5)
-            bmin, bmax = 0.2, 5.0
+            bmin, bmax = 0.2, 4.2
             u = rng.random(Nres)
             if np.isclose(alpha, 1.0, atol=1e-6):
                 b = bmin * (bmax / bmin) ** u
@@ -67,11 +64,13 @@ def SimPhotDiffFlowGL6(C_molar, Rp, D, totalTime, binDt, w0, axialFactor, includ
         b = np.exp(sigma_b * rng.normal(size=Nres) - 0.5 * sigma_b**2)
 
     Rp_i = Rp * b
-        
+    
     # Pre-generate all random numbers needed for the loop
     #diffusion_noise = rng.standard_normal((nSteps, Nres, 3))
-    photon_uniform = rng.random((nSteps, int(2*Rp*dt+100)))  # overestimate
-    poisson_photons = rng.poisson(1.0, nSteps)  # will scale by mean in loop
+    
+    #photon_uniform = rng.random((nSteps, int(2*Rp*dt+100)))  # overestimate
+    #poisson_photons = rng.poisson(1.0, nSteps)  # will scale by mean in loop
+    
     #poisson_bg = rng.poisson(1.0, nSteps) if includeBg else np.zeros(nSteps)
     poisson_bg = rng.poisson(bgRate * dt, nSteps) if includeBg else np.zeros(nSteps, dtype=np.int64)
 
@@ -80,11 +79,18 @@ def SimPhotDiffFlowGL6(C_molar, Rp, D, totalTime, binDt, w0, axialFactor, includ
     perm_indices_y = rng.integers(0, Nres, (nSteps//stepsPerSweep + 2, Nres))
     perm_indices_z = rng.integers(0, Nres, (nSteps//stepsPerSweep + 2, Nres))
 
+    # 4) Preallocate photon times
+    Veff = np.pi ** (3/2) * w0**2 * w_z
+    Navg = C_m3 * NA * Veff
+    expCount = int(np.ceil((Navg*Rp + bgRate) * totalTime * 3.0))
+
+    arrivalTimes = np.empty(expCount, dtype=np.float64)
 
     # Call the JIT-compiled simulation loop
-    arrivalTimes, idx, Rp_i_out = simulation_loop_jit(
+    idx, Rp_i_out = simulation_loop_jit(
+        arrivalTimes,
         pos, Rp_i, w0, w_z, Nres, nSteps, stepsPerSweep, dt, sigma, vFlow, Lres, Lbox,
-        includeBg, bgRate, beamShape, photon_uniform, poisson_photons, poisson_bg, perm_indices_x, perm_indices_y, perm_indices_z
+        includeBg, bgRate, beamShape, poisson_bg, perm_indices_x, perm_indices_y, perm_indices_z
     )
     arrivalTimes = arrivalTimes[:idx]
     # 7) Bin into intensity trace
@@ -94,9 +100,8 @@ def SimPhotDiffFlowGL6(C_molar, Rp, D, totalTime, binDt, w0, axialFactor, includ
     return arrivalTimes, counts, timeBins, Rp_i_out, (sigma_b, dist_type, alpha)
 
 @njit
-def simulation_loop_jit(pos, Rp_i, w0, w_z, Nres, nSteps, stepsPerSweep, dt, sigma, vFlow, Lres, Lbox,
-                       includeBg, bgRate, beamShape, photon_uniform, poisson_photons, poisson_bg, perm_indices_x, perm_indices_y, perm_indices_z):
-    arrivalTimes = np.empty(nSteps*100, dtype=np.float64)  # overallocate
+def simulation_loop_jit(arrivalTimes, pos, Rp_i, w0, w_z, Nres, nSteps, stepsPerSweep, dt, sigma, vFlow, Lres, Lbox,
+                       includeBg, bgRate, beamShape, poisson_bg, perm_indices_x, perm_indices_y, perm_indices_z):
     idx = 0
     perm_counter = 0
     for k in range(1, nSteps+1):
@@ -164,12 +169,12 @@ def simulation_loop_jit(pos, Rp_i, w0, w_z, Nres, nSteps, stepsPerSweep, dt, sig
         NtotEv = Nph + Nbg
         if NtotEv > 0:
             for j in range(NtotEv):
-                if idx >= len(arrivalTimes) or NtotEv > photon_uniform.shape[1]:
+                if idx >= len(arrivalTimes):
                     print("underallocated mem")
                 
-                arrivalTimes[idx] = t0 + photon_uniform[k-1, j] * dt
-
+                arrivalTimes[idx] = t0 + np.random.random() * dt
                 idx += 1
+
         # Permute
         if stepsPerSweep < 1e8 and k % stepsPerSweep == 0:
             # perm = perm_indices[perm_counter]
@@ -180,7 +185,12 @@ def simulation_loop_jit(pos, Rp_i, w0, w_z, Nres, nSteps, stepsPerSweep, dt, sig
             pos[:, 1] = pos[perm_y, 1]
             pos[:, 2] = pos[perm_z, 2]
             perm_counter += 1
-    return arrivalTimes, idx, Rp_i
+
+    if idx > len(arrivalTimes):
+        print("Overflow: attempted", idx, ", allocated", len(arrivalTimes))
+    arrivalTimes = arrivalTimes[:min(idx, len(arrivalTimes))]  # Trim safely
+    
+    return idx, Rp_i
 
 def run_one_sim(sim_num):
     #fixed variables
@@ -361,50 +371,9 @@ def run_one_sim(sim_num):
 if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
 
-    num_sims = 1
-    num_workers = 1
+    num_sims = 50
+    num_workers = 10
 
     with mp.Pool(processes=num_workers) as pool:
         pool.map(run_one_sim, range(num_sims))
 
-
-# d: 4e-10, 1e-10, 7e-11, 3e-11, 8e-12, 4e-12
-# conc: 1e-10, 5e-11, 1e-11, 5e-12, 1e-12
-# rp: 1e5, 1e6, 1e7
-# vflow: 5e-3, 0
-# dt: 1e-6, 1e-5
-
-# for each D:
-#     for each dt:
-#         conc = 5e-12, Rp = 1e6, vF = 5e-4
-# for each C:
-#     D = 7e-11, Rp = 1e6, vF = 5e-4, dt = 1e-6
-# for each Rp:
-#     D = 7e-11, conc = 5e-12, vF = 5e-4, dt = 1e-6
-# for each vF:
-#     D = 7e-11, Rp=1e6, dt = 1e-6, conc = 5e-12
-        
-
-# if __name__ == "__main__":
-#     Ds = [4e-10, 1e-10, 7e-11, 3e-11, 8e-12, 4e-12]
-#     Cs = [1e-10, 5e-11, 1e-11, 5e-12, 1e-12]
-#     dts = [1e-6, 1e-5]
-#     Rps = [1e5, 1e6, 1e7]
-#     vFs = [5e-4, 0]
-#     dts = [1e-6, 1e-5]
-#     combos = [] #D, dt, conc, rp, vF
-#     for D in Ds:
-#         for dt in dts:
-#             combos.append((D, dt, 5e-12, 1e6, 5e-4, 10))
-#     for C in Cs:
-#         combos.append((7e-11, 1e-6, C, 1e6, 5e-4, 10))
-#     for Rp in Rps:
-#         combos.append((7e-11, 1e-6, 5e-12, Rp, 5e-4, 10))
-#     for vF in vFs:
-#         combos.append((7e-11, 1e-6, 5e-12, 1e6, vF, 10))
-#     combos.append((7e-11, 1e-6, 5e-12, 1e6, 5e-4, 60))
-#     combos = [(i, D, dt, conc, Rp, vF, tt) for i, (D, dt, conc, Rp, vF, tt) in enumerate(combos)]
-
-    
-#     with mp.Pool(processes=4) as pool:
-#         results = pool.starmap(run_one_sim, combos)
