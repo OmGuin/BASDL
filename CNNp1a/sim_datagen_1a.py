@@ -371,8 +371,8 @@ def run_one_sim(sim_num):
 if __name__ == '__main__':
     mp.set_start_method('spawn', force=True)
 
-    num_sims = 50
-    num_workers = 10
+    num_sims = 1000000
+    num_workers = 200
 
     with mp.Pool(processes=num_workers) as pool:
         pool.map(run_one_sim, range(num_sims))
